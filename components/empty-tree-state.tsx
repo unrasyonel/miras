@@ -20,8 +20,15 @@ export function EmptyTreeState({ locale }: { locale: Locale }) {
         <h1>{copy.emptyTitle}</h1>
         <p>{copy.emptyBody}</p>
       </div>
-      <div className="empty-mouse-hint" aria-hidden="true">
-        <svg viewBox="0 0 58 68"><path className="mouse-outline" d="M29 13c-9 0-16 7-16 16v16c0 9 7 16 16 16s16-7 16-16V29c0-9-7-16-16-16Z"/><path className="mouse-divider" d="M29 13v18"/><path className="mouse-wheel" d="M29 22v5"/><circle className="mouse-pulse" cx="29" cy="27" r="15"/><path className="mouse-spark spark-one" d="M10 18 5 13"/><path className="mouse-spark spark-two" d="M48 18l5-5"/></svg>
+      <div className="empty-add-hint" aria-hidden="true">
+        <svg viewBox="0 0 104 66">
+          <defs>
+            <marker id="add-hint-arrowhead" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto">
+              <path className="add-hint-arrowhead" d="M1 1 9 5 1 9" />
+            </marker>
+          </defs>
+          <path className="add-hint-line" d="M7 10C32 8 51 20 69 39c9 9 16 15 23 19" markerEnd="url(#add-hint-arrowhead)" />
+        </svg>
       </div>
     </>
   );
