@@ -20,9 +20,8 @@ export function EmptyTreeState({ locale }: { locale: Locale }) {
         <h1>{copy.emptyTitle}</h1>
         <p>{copy.emptyBody}</p>
       </div>
-      <div className="empty-invitation">
-        <span>{copy.addPerson}</span>
-        <svg viewBox="0 0 116 54" aria-hidden="true"><path d="M5 12 C38 4 72 8 102 39"/><circle cx="19" cy="10" r="2"/><circle cx="34" cy="8" r="2"/><path d="m93 37 11 4-3-11"/></svg>
+      <div className="empty-mouse-hint" aria-hidden="true">
+        <svg viewBox="0 0 58 68"><path className="mouse-outline" d="M29 13c-9 0-16 7-16 16v16c0 9 7 16 16 16s16-7 16-16V29c0-9-7-16-16-16Z"/><path className="mouse-divider" d="M29 13v18"/><path className="mouse-wheel" d="M29 22v5"/><circle className="mouse-pulse" cx="29" cy="27" r="15"/><path className="mouse-spark spark-one" d="M10 18 5 13"/><path className="mouse-spark spark-two" d="M48 18l5-5"/></svg>
       </div>
     </>
   );
