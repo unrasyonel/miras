@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, ChevronRight, Link2, MapPinned, Pencil, Plus, Trash2, User, UserRound, X } from "lucide-react";
+import { Camera, ChevronRight, Link2, Pencil, Plus, Trash2, User, UserRound, X } from "lucide-react";
 import { useTreeStore } from "@/lib/store";
 import { messages, type Locale } from "@/lib/i18n";
 import type { Person, RelationshipType } from "@/lib/types";
 import { LocationField } from "@/components/location-field";
 import { confirmDialog } from "@/lib/dialog-store";
 import { inferGender } from "@/lib/gender";
+import { LocationMap } from "@/components/location-map";
 
 function Field({ label, value, placeholder, disabled, list, onCommit }: { label: string; value?: string; placeholder?: string; disabled: boolean; list?: string; onCommit: (value: string) => void }) {
   return (
@@ -111,7 +112,7 @@ export function DetailsDrawer({ locale }: { locale: Locale }) {
           {editing && <button className={`passed-away-toggle ${passedAway ? "active" : ""}`} type="button" onClick={() => { if (passedAway) { commit({ deathDate: "", deathPlace: "" }); setPassedAwayIds((ids) => { const next = new Set(ids); next.delete(person.id); return next; }); } else setPassedAwayIds((ids) => new Set(ids).add(person.id)); }}>{copy.passedAway}</button>}
           {passedAway && <div className="field-row"><Field label={copy.death} value={person.deathDate} placeholder="YYYY-MM-DD" disabled={!editing} onCommit={(deathDate) => commit({ deathDate })} /><LocationField label={copy.deathPlace} value={person.deathPlace} disabled={!editing} locale={locale} onCommit={(deathPlace) => commit({ deathPlace })} /></div>}
           <LocationField label={copy.location} value={person.location} placeholder={copy.cityCountry} disabled={!editing} locale={locale} onCommit={(location) => commit({ location })} />
-          {!editing && person.location && <a className="map-link" href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(person.location)}`} target="_blank" rel="noreferrer"><MapPinned size={15} />{copy.locationMap}</a>}
+          {!editing && person.location && <LocationMap key={`${person.id}:${person.location}`} location={person.location} loadingLabel={locale === "tr" ? "Harita yükleniyor…" : "Map loading…"} />}
         </section>
 
         {editing && <section className="drawer-section photo-section"><div><h3>{copy.photo}</h3><p>{copy.photoHelp}</p>{person.photoUrl && <button className="remove-photo" type="button" onClick={() => commit({ photoUrl: "" })}>{copy.removePhoto}</button>}</div><label className="photo-upload"><span className={person.photoUrl ? "has-photo" : ""} style={person.photoUrl ? { backgroundImage: `url(${person.photoUrl})` } : undefined}>{!person.photoUrl && <Camera size={22} />}</span><strong>{copy.addPhoto}</strong><input type="file" accept="image/*" hidden onChange={(event) => addPhoto(event.target.files?.[0])} /></label></section>}
