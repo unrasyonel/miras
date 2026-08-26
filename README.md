@@ -33,6 +33,8 @@ npm run build
 
 Production builds are exported to `out/` as static files.
 
+An Nginx example for the production domain is available at [`deploy/miras.erenson.dev.conf`](deploy/miras.erenson.dev.conf).
+
 ## Privacy
 
 Current releases keep tree data and avatars in the browser. Review exports before sharing them: backup files can contain personal family information.
