@@ -64,6 +64,7 @@ import type { RelationshipType, SaveStatus, TreeDocument } from "@/lib/types";
 import { familyGeometry } from "@/lib/family-layout";
 import { cardDimensions } from "@/lib/card-layout";
 import { canvasInteraction } from "@/lib/canvas-interaction";
+import { wheelZoomTarget, zoomAroundPoint } from "@/lib/wheel-zoom";
 
 const touchQuery = "(pointer: coarse)";
 const subscribeTouch = (notify: () => void) => {
@@ -117,7 +118,52 @@ function Canvas({ locale, interactionMode }: { locale: Locale; interactionMode: 
   const deletePerson = useTreeStore((state) => state.deletePerson);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [guides, setGuides] = useState<{ x?: number; y?: number }>({});
-  const { getNode, getNodes, setCenter, zoomIn, zoomOut, fitView } = useReactFlow();
+  const { getNode, getNodes, setCenter, zoomIn, zoomOut, fitView, getViewport, setViewport } = useReactFlow();
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let frameId = 0;
+    let targetZoom = 1;
+    let previousTime = 0;
+    let point = { x: 0, y: 0 };
+    const stop = () => { cancelAnimationFrame(frameId); frameId = 0; };
+    const animate = (now: number) => {
+      const viewport = getViewport();
+      const weight = 1 - Math.exp(-(now - previousTime) / 85);
+      previousTime = now;
+      const nextZoom = viewport.zoom + (targetZoom - viewport.zoom) * weight;
+      const finished = Math.abs(targetZoom - nextZoom) < .0005;
+      void setViewport(zoomAroundPoint(viewport, point, finished ? targetZoom : nextZoom));
+      frameId = finished ? 0 : requestAnimationFrame(animate);
+    };
+    const wheel = (event: WheelEvent) => {
+      // Leave native pinch and scrollable node controls to React Flow.
+      if (event.ctrlKey) { stop(); return; }
+      if (!(event.target instanceof Element) || !event.target.closest(".react-flow") || event.target.closest(".nowheel, .person-actions, input, textarea, select")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const viewport = getViewport();
+      const rect = canvas.getBoundingClientRect();
+      point = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      targetZoom = wheelZoomTarget(frameId ? targetZoom : viewport.zoom, event.deltaY, event.deltaMode, rect.height);
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        stop();
+        void setViewport(zoomAroundPoint(viewport, point, targetZoom));
+      } else if (!frameId) {
+        previousTime = performance.now();
+        frameId = requestAnimationFrame(animate);
+      }
+    };
+    canvas.addEventListener("wheel", wheel, { passive: false, capture: true });
+    canvas.addEventListener("pointerdown", stop, true);
+    return () => {
+      stop();
+      canvas.removeEventListener("wheel", wheel, true);
+      canvas.removeEventListener("pointerdown", stop, true);
+    };
+  }, [getViewport, setViewport]);
 
   const flowNodes = useMemo<PersonFlowNode[]>(() => document.people.map((person) => ({
     id: person.id,
@@ -213,7 +259,7 @@ function Canvas({ locale, interactionMode }: { locale: Locale; interactionMode: 
   }, [addRelationship]);
 
   return (
-    <div className="canvas-wrap">
+    <div className="canvas-wrap" ref={canvasRef}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -286,9 +332,8 @@ function Canvas({ locale, interactionMode }: { locale: Locale; interactionMode: 
         connectionMode={ConnectionMode.Loose}
         {...canvasInteraction(interactionMode, touch)}
         selectionMode={SelectionMode.Partial}
-        panOnScroll
-        panOnScrollSpeed={0.72}
-        zoomOnScroll
+        panOnScroll={false}
+        zoomOnScroll={false}
         onlyRenderVisibleElements={document.people.length > 140}
         deleteKeyCode={null}
         proOptions={{ hideAttribution: true }}
