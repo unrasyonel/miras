@@ -134,6 +134,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .workspace { position: relative; z-index: 1; min-width: 0; flex: 1; transition: margin-right 320ms cubic-bezier(.2,0,0,1); }
 .app-shell:has(.details-drawer) .workspace { margin-right: 400px; }
 .canvas-wrap { position: absolute; inset: 0; overflow: hidden; }
+.canvas-wrap .react-flow { touch-action: none; overscroll-behavior: none; }
 .canvas-wrap .react-flow__viewport { will-change: transform; transform-style: preserve-3d; }
 .canvas-wrap .react-flow__background { color: color-mix(in srgb, var(--md-outline) 28%, transparent); }
 .canvas-wrap .react-flow__controls { display: flex; overflow: hidden; flex-direction: row; border: 0; border-radius: 24px; background: var(--md-surface-container-high); box-shadow: var(--md-shadow-2); }

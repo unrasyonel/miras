@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -63,6 +63,16 @@ import { useTreeStore } from "@/lib/store";
 import type { RelationshipType, SaveStatus, TreeDocument } from "@/lib/types";
 import { familyGeometry } from "@/lib/family-layout";
 import { cardDimensions } from "@/lib/card-layout";
+import { canvasInteraction } from "@/lib/canvas-interaction";
+
+const touchQuery = "(pointer: coarse)";
+const subscribeTouch = (notify: () => void) => {
+  const query = window.matchMedia(touchQuery);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+};
+const getTouchSnapshot = () => window.matchMedia(touchQuery).matches;
+const getServerTouchSnapshot = () => false;
 import { createMirasBackup, readMirasBackup } from "@/lib/backup";
 import { confirmDialog, noticeDialog } from "@/lib/dialog-store";
 import { AppDialog } from "./app-dialog";
@@ -96,6 +106,7 @@ function handlesBetween(source: { x: number; y: number }, target: { x: number; y
 }
 
 function Canvas({ locale, interactionMode }: { locale: Locale; interactionMode: "select" | "drag" }) {
+  const touch = useSyncExternalStore(subscribeTouch, getTouchSnapshot, getServerTouchSnapshot);
   const copy = messages[locale];
   const document = useTreeStore((state) => state.document);
   const drawerPersonId = useTreeStore((state) => state.selectedPersonId);
@@ -273,12 +284,10 @@ function Canvas({ locale, interactionMode }: { locale: Locale; interactionMode: 
         minZoom={0.18}
         maxZoom={2.4}
         connectionMode={ConnectionMode.Loose}
-        selectionOnDrag={interactionMode === "select"}
+        {...canvasInteraction(interactionMode, touch)}
         selectionMode={SelectionMode.Partial}
-        panOnDrag={interactionMode === "drag"}
         panOnScroll
         panOnScrollSpeed={0.72}
-        zoomOnPinch
         zoomOnScroll
         onlyRenderVisibleElements={document.people.length > 140}
         deleteKeyCode={null}
